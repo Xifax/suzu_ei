@@ -21,7 +21,7 @@ from gui.about import About
 from gui.guiOpt import OptionsDialog
 from gui.guiQuick import QuickDictionary
 from gui.guiUtil import roundCorners, unfillLayout
-from jdict.db import DictionaryLookup
+from edict.db import DictionaryLookup
 
 # external #
 from PySide.QtCore import QTimer,Qt,QRect,QObject,QEvent,QByteArray

@@ -10,7 +10,8 @@ Created on Mar 19, 2011
 
 # -> this is main application module <- #
 #===============================================================================
-# --- suzu ---
+# --- suzu_ei ---
+# english/russian fork
 # -> main project file <-
 # -> contains: 
 #   - central GUI dialog
@@ -96,7 +97,7 @@ from gui.about import About
 from gui.guiOpt import OptionsDialog
 from gui.guiQuick import QuickDictionary
 from utilities.utils import BackgroundDownloader
-from jdict.db import redict      # for redict, elusive import
+from edict.db import redict      # for redict, elusive import
 
 ####################################
 #        QT application loop       #

@@ -12,10 +12,6 @@ from settings.fonts import Fonts
 # external #
 from PySide.QtCore import *
 from PySide.QtGui import *
-from uromkan import romkan, normalize_double_n
-from cjktools import scripts
-from jcconv import hira2kata
-
 
 class QuickDictionary(QFrame):
     

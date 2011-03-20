@@ -1,6 +1,8 @@
-#Sat Mar 19 22:40:03 MSK 2011
+#Sun Mar 20 16:44:19 MSK 2011
 eclipse.preferences.version=1
 encoding//src/edict/db.py=utf-8
+encoding//src/etools/frequency.py=utf-8
+encoding//src/etools/tatoeba.py=utf-8
 encoding//src/gui/about.py=utf-8
 encoding//src/gui/guiMain.py=utf-8
 encoding//src/gui/guiOpt.py=utf-8
@@ -12,7 +14,7 @@ encoding//src/settings/fonts.py=utf-8
 encoding//src/settings/optionsBackend.py=utf-8
 encoding//src/srs/leitner.py=utf-8
 encoding//src/srs/srsManager.py=utf-8
-encoding//src/suzu.py=utf-8
+encoding//src/suzu_ei.py=utf-8
 encoding//src/utilities/rtimer.py=utf-8
 encoding//src/utilities/stats.py=utf-8
 encoding//src/utilities/utils.py=utf-8

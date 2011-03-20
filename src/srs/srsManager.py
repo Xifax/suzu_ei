@@ -6,33 +6,29 @@ Created on Feb 7, 2011
 '''
 
 # own #
-from jdict.db import DBoMagic
-from jtools.jisho import JishoClient
+from edict.db import DBoMagic
 from leitner import Leitner
-from settings.constants import modes, modeByKey
-
-# external #
-from mParser.mecabTool import MecabTool
-from jcconv import kata2hira
+from etools.tatoeba import TatoebaLookup
 
 class srsScheduler:
 
-    #NB: only kanji mode is working properly
-
     def __init__(self):
         self.db = DBoMagic()
-        self.mode = modes.kanji
+        self.tatoeba = TatoebaLookup()
+        
+    def initializeAll(self):
+        self.tatoeba.loadExamplesFromPickled()
+        self.db.frequency.loadFrequencyDict()
+        self.db.setupDB()
         
     def activeDB(self):
         return self.db
         
-    def initializeCurrentSession(self, mode, sessionSize):
+    def initializeCurrentSession(self, sessionSize):
         self.currentItem = u''
         self.currentExample = u''
-        self.db.setupDB()
         
-        self.db.initializeCurrentSession(modeByKey(mode), sessionSize)
-        self.mode = mode
+        self.db.initializeCurrentSession(sessionSize)
         
     def endCurrentSession(self):
         self.db.endCurrentSesion()
@@ -40,37 +36,33 @@ class srsScheduler:
     def getNextItem(self):
         """Get next quiz item reading, set current quiz item"""
         self.currentItem = self.db.getNextQuizItem()
+        print self.currentItem.item
         self.currentExample = u''
         #TODO: add check for NoneType
     
     def getCurrentItem(self):
-        """Returns kanji itself"""
-        return self.currentItem.character
+        return self.currentItem.item
     
-    def getCurrentItemKanji(self):
-        """Returns kanji with all information"""
-        return self.currentItem
+#    def getCurrentItemKanji(self):
+#        return self.currentItem
      
     def getCurrentExample(self):
-        if not self.db.checkIfKanjiHasExamples(self.currentItem):
-            #NB: how about some threading and queues?
-            self.db.addExamplesForKanji(self.currentItem, JishoClient.getExamples(self.currentItem.character))
-
-        self.currentExample = self.db.getExample(self.currentItem) 
-        ## adding corresponding word to db
-        #self.db.addWordToDb(self.currentItem, self.getWordFromExample())
-        self.db.addWordToDbAndLinkToExample(self.currentItem, self.getWordFromExample(), self.currentExample)
-        
-        return self.currentExample.sentence
+        self.currentExample = self.tatoeba.getRandomExample(self.currentItem.item)
+        return self.currentExample['eng']
     
     def parseCurrentExample(self):
-        return MecabTool.parseToWordsOnly(self.currentExample.sentence)
-    
-    def getCurrentSentenceReading(self):
-        return kata2hira(''.join(MecabTool.parseToReadingsKana(self.currentExample.sentence)))
+        result = []
+        words = self.currentExample['eng'].split(' ')
+        for word in words:
+            if not word.endswith('.'):
+                result.append(word + ' ')
+            else:
+                result.append(word)
+        return result
+        #return self.currentExample['eng'].split(' ')
     
     def getCurrentSentenceTranslation(self):
-        return self.currentExample.translation
+        return unicode(self.currentExample['rus'], 'utf-8')
 
     def getQuizVariants(self):
         return self.db.findSimilarReading(self.getCorrectAnswer())
@@ -91,21 +83,21 @@ class srsScheduler:
         
         self.db.updateQuizItem(self.currentItem)
     
-    def getCorrectAnswer(self):
-        words = MecabTool.parseToWordsFull(self.currentExample.sentence)
-        answer = self.find(lambda word: self.currentItem.character in word['word'] , words)
-        return kata2hira(answer['pronunciation'])
+#    def getCorrectAnswer(self):
+#        words = MecabTool.parseToWordsFull(self.currentExample.sentence)
+#        answer = self.find(lambda word: self.currentItem.character in word['word'] , words)
+#        return kata2hira(answer['pronunciation'])
     
-    def getWordFromExample(self):
-        words = MecabTool.parseToWordsFull(self.currentExample.sentence)
-        answer = self.find(lambda word: self.currentItem.character in word['word'] , words)
-        return answer['word']
+#    def getWordFromExample(self):
+#        words = MecabTool.parseToWordsFull(self.currentExample.sentence)
+#        answer = self.find(lambda word: self.currentItem.character in word['word'] , words)
+#        return answer['word']
     
     # get reading based on word from parse results?
-    def getWordPronunciationFromExample(self, item):
-        words = MecabTool.parseToWordsFull(self.currentExample.sentence)
-        answer = self.find(lambda word: item in word['word'] , words)
-        return kata2hira(answer['pronunciation'])
+#    def getWordPronunciationFromExample(self, item):
+#        words = MecabTool.parseToWordsFull(self.currentExample.sentence)
+#        answer = self.find(lambda word: item in word['word'] , words)
+#        return kata2hira(answer['pronunciation'])
     
     def find(self, f, seq):
         """Return first item in sequence where f(item) == True."""
@@ -113,23 +105,23 @@ class srsScheduler:
             if f(item): 
                 return item
             
-    def getParsedExampleInFull(self):
-        return MecabTool.parseToWordsFull(self.currentExample.sentence)
-    
-    def getWordNonInflectedForm(self, item):
-        try:
-            return MecabTool.parseToWordsFull(item)[0]['nform']
-        except:
-            return item
+#    def getParsedExampleInFull(self):
+#        return MecabTool.parseToWordsFull(self.currentExample.sentence)
+#    
+#    def getWordNonInflectedForm(self, item):
+#        try:
+#            return MecabTool.parseToWordsFull(item)[0]['nform']
+#        except:
+#            return item
         
-    def getWordPronounciation(self, item):
-        try:
-            return kata2hira(MecabTool.parseToWordsFull(item)[0]['pronunciation'])
-        except:
-            return item
+#    def getWordPronounciation(self, item):
+#        try:
+#            return kata2hira(MecabTool.parseToWordsFull(item)[0]['pronunciation'])
+#        except:
+#            return item
     
     def getNextQuizTime(self):
-        return self.currentItem.next_quiz.strftime('%d %b %H:%M:%S')#('%d %b %H:%M:%S (%Y)')
+        return self.currentItem.next_quiz.strftime('%d %b %H:%M:%S')
     
     def getLeitnerGradeAndColor(self):
         return {'grade' : str(self.currentItem.leitner_grade), 'name' : Leitner.grades[self.currentItem.leitner_grade].key, 'color' : Leitner.correspondingColor(self.currentItem.leitner_grade)}

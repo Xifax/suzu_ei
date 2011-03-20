@@ -32,7 +32,7 @@ def install_with_easyinstall(package):
     
 if __name__ == '__main__':
 
-    packages = ['pyside', 'sqlalchemy', 'elixir',' userconfig', 'jcconv', 'uromkan', 'cjktools', 'cjktools-data']
+    packages = ['pyside', 'sqlalchemy', 'elixir',' userconfig', 'pymorphy', 'nltk', 'openpyxl']
     for package in packages:
         print 'Installing ' + package
         install_with_easyinstall(package)

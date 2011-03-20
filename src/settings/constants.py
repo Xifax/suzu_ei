@@ -57,56 +57,49 @@ Q_SPACE = 30
 SQLITE = 'sqlite:///'
 PATH_TO_RES = '../res/'
 DBNAME = 'studying.db'
-KANJIDIC2 = 'kanjidic2.db'
-JMDICT = 'jmdict.db'
-JMDICT_DUMP = 'jmdict.pck'
+EXAMPLES = 'sentences.csv'
+LINKS = 'links.csv'
+RESULTING_DICTIONARY = 'tatoeba.pck'
+FREQUENCIES_XL = 'SUBTLEX.xlsx'
+FREQUENCIES_TXT = 'SUBTLEX.txt'
+XL_SHEET = 'out1g'
+RESULTING_FREQUENCIES = 'frequencies.pck'
 
 ICONS = 'icons/'
 LOGOS = 'logo/'
 TRAY = 'tray/'
+FREQ = 'frequency/'
 
 ###########################
 ### version information ###
 ###########################
 
 __version__ = '0.0.1'       #beware: is not imported with '*'
-__application__ = 'suzu'    #輪廻／りんね or 鈴ね
+__application__ = 'suzu_ei'    #輪廻／りんね or 鈴ね
 
 ###########################
 ###    quiz generator   ###
 ###########################
 
-KANA_TABLE  =  [u'あ', u'い', u'う', u'え', u'お',
-                u'か', u'き', u'く', u'け', u'こ', 
-                u'さ', u'し', u'す', u'せ', u'そ', 
-                u'た', u'ち', u'つ', u'て', u'と', 
-                u'な', u'に', u'ぬ', u'ね', u'の', 
-                u'は', u'ひ', u'ふ', u'へ', u'ほ', 
-                u'ま', u'み', u'む', u'め', u'も', 
-                u'や', u'ゆ', u'よ', 
-                u'ら', u'り', u'る', u'れ', u'ろ', 
-                u'わ', u'を', u'ん',
-        
-                u'が', u'ぎ', u'ぐ', u'げ', u'ご', 
-                u'ざ', u'じ', u'ず', u'ぜ', u'ぞ', 
-                u'だ', u'ぢ', u'づ', u'で', u'ど', 
-                u'ば', u'び', u'ぶ', u'べ', u'ぼ', 
-                u'ぱ', u'ぴ', u'ぷ', u'ぺ', u'ぽ' ]
-
-BUTTON_KANA_MAX = 6     #as of now - not in use
-
 ###########################
 ###      quiz modes     ###
 ###########################
 
-modes = Enum('kanji', 'words', 'all')
+#modes = Enum('kanji', 'words', 'all')
+#
+#def modeByKey(key):
+#    try:
+#        return { 
+#                    modes.kanji.key  : modes.kanji,
+#                    modes.words.key  : modes.words,
+#                    modes.all.key  : modes.all
+#                }[key]
+#    except KeyError:
+#        return modes.all
+    
+###########################
+###     tatoeba urls    ###
+###########################
 
-def modeByKey(key):
-    try:
-        return { 
-                    modes.kanji.key  : modes.kanji,
-                    modes.words.key  : modes.words,
-                    modes.all.key  : modes.all
-                }[key]
-    except KeyError:
-        return modes.all
+sentences_url = 'http://tatoeba.org/files/downloads/sentences.csv'
+links_url = 'http://tatoeba.org/files/downloads/links.csv'

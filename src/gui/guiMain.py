@@ -16,7 +16,7 @@ from settings.optionsBackend import Options
 from settings.constants import *
 from utilities.rtimer import RepeatTimer
 from utilities.stats import Stats
-from utilities.utils import BackgroundDownloader, GlobalHotkeyManager
+from utilities.utils import GlobalHotkeyManager
 from gui.about import About
 from gui.guiOpt import OptionsDialog
 from gui.guiQuick import QuickDictionary
@@ -281,10 +281,13 @@ class Quiz(QFrame):
         self.countdown = QProgressBar()
         self.sentence = QLabel(u'')
         
-        self.var_1st = QPushButton(u'')
-        self.var_2nd = QPushButton(u'')
-        self.var_3rd = QPushButton(u'')
-        self.var_4th = QPushButton(u'')
+#        self.var_1st = QPushButton(u'')
+#        self.var_2nd = QPushButton(u'')
+#        self.var_3rd = QPushButton(u'')
+#        self.var_4th = QPushButton(u'')
+
+        self.isKnown = QPushButton(u'Good')
+        self.isNotKnown = QPushButton(u'Again')
 
         self.answered = QPushButton(u'')
         self.answered.hide()
@@ -293,10 +296,13 @@ class Quiz(QFrame):
         self.layout_vertical = QVBoxLayout()        #main
         self.layout_horizontal = QHBoxLayout()      #buttons
         
-        self.layout_horizontal.addWidget(self.var_1st)
-        self.layout_horizontal.addWidget(self.var_2nd)
-        self.layout_horizontal.addWidget(self.var_3rd)
-        self.layout_horizontal.addWidget(self.var_4th)
+#        self.layout_horizontal.addWidget(self.var_1st)
+#        self.layout_horizontal.addWidget(self.var_2nd)
+#        self.layout_horizontal.addWidget(self.var_3rd)
+#        self.layout_horizontal.addWidget(self.var_4th)
+
+        self.layout_horizontal.addWidget(self.isKnown)
+        self.layout_horizontal.addWidget(self.isNotKnown)
         
         self.layout_vertical.addWidget(self.countdown)
         self.layout_vertical.addWidget(self.sentence)
@@ -371,18 +377,19 @@ class Quiz(QFrame):
         time_start = datetime.now()
         
         self.trayIcon.showMessage('Loading...', 'Initializing dictionaries', QSystemTrayIcon.MessageIcon.Information, 20000 )     #TODO: change into loading dialog... or not
-        self.rdk = RadkDict()
-        edict_file = resource_filename('cjktools_data', 'dict/je_edict')
-        self.edict = auto_format.load_dictionary(edict_file)
-        self.kjd = kanjidic.Kanjidic()
+#        self.rdk = RadkDict()
+#        edict_file = resource_filename('cjktools_data', 'dict/je_edict')
+#        self.edict = auto_format.load_dictionary(edict_file)
+#        self.kjd = kanjidic.Kanjidic()
         
         """Initializing srs system"""
         self.trayIcon.showMessage('Loading...', 'Initializing databases', QSystemTrayIcon.MessageIcon.Information, 20000 )
         self.srs = srsScheduler()
-        self.srs.initializeCurrentSession(self.options.getQuizMode(), self.options.getSessionSize())
+        self.srs.initializeAll()
+        self.srs.initializeCurrentSession(self.options.getSessionSize())
         
         """Jmdict lookup"""
-        self.jmdict = DictionaryLookup()
+        #self.jmdict = DictionaryLookup()
         
         """Global hotkeys hook"""
         #TODO: add multiple hotkeys and fix stop()
@@ -405,7 +412,7 @@ class Quiz(QFrame):
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFrameStyle(QFrame.StyledPanel | QFrame.Raised)
         #Font will appear in buttons
-        self.setFont(QFont(Fonts.TukusiMyoutyouProLB, self.options.getQuizFontSize()))
+        self.setFont(QFont(self.options.getQuizFont(), self.options.getQuizFontSize()))
 
         desktop = QApplication.desktop().screenGeometry()
         self.setGeometry(QRect(desktop.width() - H_INDENT, desktop.height() - V_INDENT, D_WIDTH, D_HEIGHT))
@@ -480,19 +487,7 @@ class Quiz(QFrame):
 ####################################
 #        Updating content          #
 ####################################        
-    '''
-    def unfill(self, layoutName): 
-        def deleteItems(layout): 
-            if layout is not None: 
-                while layout.count(): 
-                    item = layout.takeAt(0) 
-                    widget = item.widget() 
-                    if widget is not None: 
-                        widget.deleteLater() 
-                    else: 
-                        deleteItems(item.layout()) 
-        deleteItems(layoutName) 
-    '''
+
     def updateContent(self):
         
         """Resetting multi-label sentence"""
@@ -510,13 +505,14 @@ class Quiz(QFrame):
         self.srs.getNextItem()
               
         start = datetime.now()  #testing
-        example = self.srs.getCurrentExample().replace(self.srs.getWordFromExample(), u"<font color='blue'>" + self.srs.getWordFromExample() + u"</font>")
+        #example = self.srs.getCurrentExample().replace(self.srs.getWordFromExample(), u"<font color='blue'>" + self.srs.getWordFromExample() + u"</font>")
+        example = self.srs.getCurrentExample().replace(self.srs.getCurrentItem(), u"<font color='blue'>" + self.srs.getCurrentItem() + u"</font>")
         print datetime.now() - start    #testing
         self.sentence.setText(example)
         
-        start = datetime.now()  #testing
-        readings = self.srs.getQuizVariants()
-        print datetime.now() - start    #testing
+#        start = datetime.now()  #testing
+#        readings = self.srs.getQuizVariants()
+#        print datetime.now() - start    #testing
         
         '''
         changeFont = False
@@ -534,14 +530,14 @@ class Quiz(QFrame):
             self.var_4th.setText(readings[3])
         '''
         
-        try:
-            for i in range(0, self.layout_horizontal.count()):
-                    if i > 3: break
-                    self.layout_horizontal.itemAt(i).widget().setText(u'')
-                    #self.layout_horizontal.itemAt(i).setStyleSheet('QPushButton { font-size: 11pt; }')
-                    self.layout_horizontal.itemAt(i).widget().setText(readings[i])
-        except:
-            print 'Not enough quiz variants'
+#        try:
+#            for i in range(0, self.layout_horizontal.count()):
+#                    if i > 3: break
+#                    self.layout_horizontal.itemAt(i).widget().setText(u'')
+#                    #self.layout_horizontal.itemAt(i).setStyleSheet('QPushButton { font-size: 11pt; }')
+#                    self.layout_horizontal.itemAt(i).widget().setText(readings[i])
+#        except:
+#            print 'Not enough quiz variants'
             #TODO: log this
         
     def getReadyPostLayout(self):
@@ -553,11 +549,10 @@ class Quiz(QFrame):
         self.labels = []
         
         #row, column, rows span, columns span, max columns
-        i = 0; j = 0; r = 1; c = 1; n = 16
+        i = 0; j = 0; r = 1; c = 1; n = 54  # <- needs tweaking and fixing
         for word in self.srs.parseCurrentExample():
             label = QLabel(word)
             label.setFont(QFont(self.options.getSentenceFont(), self.options.getSentenceFontSize()))
-            #label.setFont(QFont(Fonts.HiragiNoMarugotoProW4, self.options.getSentenceFontSize()))
             
             label.setAttribute(Qt.WA_Hover, True)
             label.installEventFilter(self.filter)
@@ -568,7 +563,7 @@ class Quiz(QFrame):
             #Don't ask, really
             if j + c > n: i = i + 1; j = 0
             
-            self.grid_layout.addWidget(self.labels.pop(), i, j, r, c)       #NB: Ehh, pop should remove label from list, shouldn't it?
+            self.grid_layout.addWidget(self.labels.pop(), i, j, r, c)
             
             if j <= n: j = j + c
             else: j = 0; i = i + 1
@@ -579,19 +574,15 @@ class Quiz(QFrame):
         self.update()
         
     def hideButtonsQuiz(self):
-        self.var_1st.hide()
-        self.var_2nd.hide()
-        self.var_3rd.hide()
-        self.var_4th.hide()
+        self.isKnown.hide()
+        self.isNotKnown.hide()
         
         self.answered.clicked.connect(self.hideQuizAndWaitForNext)
         self.answered.show()
         
     def showButtonsQuiz(self):
-        self.var_1st.show()
-        self.var_2nd.show()
-        self.var_3rd.show()
-        self.var_4th.show()
+        self.isKnown.show()
+        self.isNotKnown.show()
         
         self.answered.hide()
         self.answered.disconnect()
@@ -679,37 +670,12 @@ class Quiz(QFrame):
                                           QSystemTrayIcon.MessageIcon.Information, 20000)
     
     def setButtonsActions(self):
-
-        if self.var_1st.text() == self.srs.getCorrectAnswer():
-                self.var_1st.clicked.connect(self.correctAnswer)
-        else:
-                self.var_1st.clicked.connect(self.wrongAnswer)
-               
-        if self.var_2nd.text() == self.srs.getCorrectAnswer():
-                self.var_2nd.clicked.connect(self.correctAnswer)
-        else:
-                self.var_2nd.clicked.connect(self.wrongAnswer)
-                
-        if self.var_3rd.text() == self.srs.getCorrectAnswer():
-                self.var_3rd.clicked.connect(self.correctAnswer)
-        else:
-                self.var_3rd.clicked.connect(self.wrongAnswer)
-                
-        if self.var_4th.text() == self.srs.getCorrectAnswer():
-                self.var_4th.clicked.connect(self.correctAnswer)
-        else:
-                self.var_4th.clicked.connect(self.wrongAnswer)
-                
-        self.var_1st.setShortcut('1')
-        self.var_2nd.setShortcut('2')
-        self.var_3rd.setShortcut('3')
-        self.var_4th.setShortcut('4')
-                
+        self.isKnown.clicked.connect(self.correctAnswer)
+        self.isNotKnown.clicked.connect(self.wrongAnswer)
+        
     def resetButtonsActions(self):
-        self.var_1st.disconnect()
-        self.var_2nd.disconnect()
-        self.var_3rd.disconnect()
-        self.var_4th.disconnect()
+        self.isKnown.disconnect()
+        self.isNotKnown.disconnect()
         
     def postAnswerActions(self):
         self.stats.musingsStopped()
@@ -736,7 +702,8 @@ class Quiz(QFrame):
         self.stats.quizAnsweredCorrect()
         #self.answered.setText(u"<font='Cambria'>" + self.srs.getCurrentSentenceTranslation() + "</font>")
         self.answered.setText(self.srs.getCurrentSentenceTranslation())
-        self.answered.setFont(QFont('Calibri', 11))
+        print self.srs.getCurrentSentenceTranslation()
+        #self.answered.setFont(QFont('Calibri', 11))
         self.showSessionMessage(u'<font color=green>Correct: ' + self.srs.getCorrectAnswer() + '</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime() 
                                 + '\t|\t<font color=' + self.srs.getLeitnerGradeAndColor()['color'] +  '>Grade: ' + self.srs.getLeitnerGradeAndColor()['grade'] 
                                 + ' (' + self.srs.getLeitnerGradeAndColor()['name'] + ')<font>')
@@ -760,7 +727,7 @@ class Quiz(QFrame):
         self.stats.quizAnsweredWrong()
         
         self.answered.setText(self.srs.getCurrentSentenceTranslation())
-        self.answered.setFont(QFont('Calibri', 11))
+        #self.answered.setFont(QFont('Calibri', 11))
         #self.showSessionMessage(u"Wrong! Should be: <font style='font-family:" + Fonts.MSMyoutyou + "'>" 
                                 #+ self.srs.getCorrectAnswer() + "</font> - Next quiz: " + self.srs.getNextQuizTime())
         self.showSessionMessage(u'<font color=tomato>Wrong! Should be: '+ self.srs.getCorrectAnswer() + '</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime()
@@ -796,7 +763,7 @@ class Quiz(QFrame):
         self.fade()
         QTimer.singleShot(1000, self.hide)
         self.waitUntilNextTimeslot()
-        self.updater.mayUpdate = True
+        #self.updater.mayUpdate = True
  
     def pauseQuiz(self):
         if self.isHidden():
@@ -809,7 +776,7 @@ class Quiz(QFrame):
                 self.trayIcon.setIcon(QIcon(PATH_TO_RES + TRAY + 'inactive.png'))
                 self.stats.pauseStarted()
                 
-                self.updater.mayUpdate = True
+                #self.updater.mayUpdate = True
                 
             elif self.pauseAction.text() == '&Start quiz!':
                 self.waitUntilNextTimeslot()
@@ -827,7 +794,7 @@ class Quiz(QFrame):
                 self.trayIcon.setIcon(QIcon(PATH_TO_RES + TRAY + 'active.png'))
                 self.stats.pauseEnded()
                 
-                self.updater.mayUpdate = False
+                #self.updater.mayUpdate = False
         else:
             self.showSessionMessage(u'Sorry, cannot pause while quiz in progress!')
  
@@ -845,7 +812,7 @@ class Quiz(QFrame):
             self.stats.musingsStarted()
             
             if self.nextQuizTimer.isActive():   self.nextQuizTimer.stop()
-            self.updater.mayUpdate = False
+            #self.updater.mayUpdate = False
         else:
             self.showSessionMessage(u'Quiz is already underway!')
          
@@ -898,7 +865,7 @@ class Quiz(QFrame):
 
         self.hooker.stop()
 
-        self.updater.stop()
+        #self.updater.stop()
         self.optionsDialog.close()
         self.about.close()
         self.qdict.close()

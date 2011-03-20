@@ -7,41 +7,54 @@ Created on Mar 6, 2011
 
 #from PySide.QtCore import QThread, QTimer
 
-from edict.db import DBBackgroundUpdater
+#from edict.db import DBBackgroundUpdater
 
 import ctypes
 from ctypes import wintypes
 import win32con
 
 from threading import Thread, Event
+import re
 
-class BackgroundDownloader(Thread):
-    '''It seems, such implementation does not cause slight lags in qt (as opposed to QThread one)'''
-    def __init__(self, pause):
-        Thread.__init__(self)
-        
-        self.mayUpdate = False            
-        self.hasItemsToUpdate = True
-        
-        self.waitFor = (pause * 60)/2
-        
-        self.dbUpdater = DBBackgroundUpdater()
-        
-        self.event = Event()
+class redict(dict):
+    def __init__(self, d):
+        dict.__init__(self, d)
 
-    def run(self):
-        print 'Imma in yȯr background, updating yȯrz db'
-        while not self.event.is_set():
-            if self.mayUpdate and self.hasItemsToUpdate:
-                item = self.dbUpdater.getSomeItem()
-                if item is None : self.hasItemsToUpdate = False
-                else:
-                    self.dbUpdater.addExamples(item, JishoClient.getExamples(item.character))
-                    print 'Added examples for ' + item.character
-            self.event.wait(self.waitFor)
+    def __getitem__(self, regex):
+        #r = re.compile(regex)
+        #mkeys = filter(r.match, self.keys())
+        r = re.compile(r'\b%s\b' % regex, re.I)
+        mkeys = filter(r.search, self.keys())
+        for i in mkeys:
+                yield dict.__getitem__(self, i)
 
-    def stop(self):
-        self.event.set()
+#class BackgroundDownloader(Thread):
+#    '''It seems, such implementation does not cause slight lags in qt (as opposed to QThread one)'''
+#    def __init__(self, pause):
+#        Thread.__init__(self)
+#        
+#        self.mayUpdate = False            
+#        self.hasItemsToUpdate = True
+#        
+#        self.waitFor = (pause * 60)/2
+#        
+#        self.dbUpdater = DBBackgroundUpdater()
+#        
+#        self.event = Event()
+#
+#    def run(self):
+#        print 'Imma in yȯr background, updating yȯrz db'
+#        while not self.event.is_set():
+#            if self.mayUpdate and self.hasItemsToUpdate:
+#                item = self.dbUpdater.getSomeItem()
+#                if item is None : self.hasItemsToUpdate = False
+#                else:
+#                    self.dbUpdater.addExamples(item, JishoClient.getExamples(item.character))
+#                    print 'Added examples for ' + item.character
+#            self.event.wait(self.waitFor)
+#
+#    def stop(self):
+#        self.event.set()
         
 class GlobalHotkeyManager(Thread):
     def __init__(self, function, key):

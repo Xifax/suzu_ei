@@ -13,15 +13,15 @@ class Options:
     
     def __init__(self):
         #self.APP_NAME = __application__
-        self.APP_NAME = 'suzu'
+        self.APP_NAME = 'suzu_ei'
         
         #default settings    #TODO: group fonts settings
         self.OPTIONS = [('SentenceFont',    #sentences font
-                {'name' : u'ヒラギノ丸ゴ Pro W4',
-                 'size' : 18,
+                {'name' : u'Cambria',
+                 'size' : 14,
                  }),
                  ('QuizFont',               #quiz answers font
-                  {'name' : u'FOT-筑紫明朝 Pro LB',
+                  {'name' : u'Calibri',
                    'size' : 12,
                    }),
                   ('MessageFont',           #messages font
@@ -29,7 +29,7 @@ class Options:
                    'size' : 12,
                    }),
                   ('InfoFont',              #messages font
-                  {'name' : u'ヒラギノ明朝 Pro W3',
+                  {'name' : u'Calibri',
                    'size' : 12,
                    }),
                  ('Intervals',              #time constraints
@@ -51,8 +51,8 @@ class Options:
                    'sound'      : False,    #enable sound
                    'fade'       : True,     #enable fade effect
                    'background' : False,    #draw item color in background
-                   'plastique'  : False,    #use plastique theme
-                   'preload'    : False,    #preload jmdict
+                   'plastique'  : True,    #use plastique theme
+                   'preload'    : True,    #preload jmdict
                    }),
                  ('Session',                #session parameters
                   {'size'       : 300,      #number of items in session
@@ -68,20 +68,16 @@ class Options:
         self.CONFIG = UserConfig(self.APP_NAME, self.OPTIONS, version=__version__)
     ### fonts ###
     def getSentenceFont(self):
-        #return u'' + self.CONFIG.get('SentenceFont', 'name')    #NB: if launched from windows console (cmd) here will be UnicodeDecodeError
-        return unicode(self.CONFIG.get('SentenceFont', 'name'), 'utf-8')    #NB: it works even in windows!
+        return self.CONFIG.get('SentenceFont', 'name')   
     
     def getQuizFont(self):
-        #return u'' + self.CONFIG.get('QuizFont', 'name')
-        return unicode(self.CONFIG.get('QuizFont', 'name'), 'utf-8')
+        return self.CONFIG.get('QuizFont', 'name')
     
     def getMessageFont(self):
-        #return u'' + self.CONFIG.get('MessageFont', 'name')
-        return unicode(self.CONFIG.get('MessageFont', 'name'), 'utf-8')
+        return self.CONFIG.get('MessageFont', 'name')
     
     def getInfoFont(self):
-        #return u'' + self.CONFIG.get('InfoFont', 'name')
-        return unicode(self.CONFIG.get('InfoFont', 'name'), 'utf-8')
+        return self.CONFIG.get('InfoFont', 'name')
     
     def getSentenceFontSize(self):
         return self.CONFIG.get('SentenceFont', 'size')

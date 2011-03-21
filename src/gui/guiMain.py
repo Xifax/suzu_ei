@@ -868,7 +868,7 @@ class Quiz(QFrame):
         #self.updater.stop()
         self.optionsDialog.close()
         self.about.close()
-        self.qdict.close()
+        #self.qdict.close()
         self.close()        
         
     def addReferences(self, about, options, qdict, updater):

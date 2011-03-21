@@ -33,8 +33,8 @@ class FrequencyLookup:
         
         for i in range(1, ws.get_highest_row()):
             word = ws.cell(row = i, column = 0)
-            frequency = ws.cell(row = i, column = 5)    #SUBTL(WF) frequency
-            #frequency = ws.cell(row = i, column = 7)    #SUBTL(CD) frequency (0.0 ~ 100.0)
+            #frequency = ws.cell(row = i, column = 5)    #SUBTL(WF) frequency
+            frequency = ws.cell(row = i, column = 7)    #SUBTL(CD) frequency (0.0 ~ 100.0)
             
             if isinstance(word.value, unicode):
                 if len(word.value) > 1:

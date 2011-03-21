@@ -89,6 +89,7 @@ class DBoMagic:
         self.metadata = metadata
         self.metadata.bind = SQLITE + PATH_TO_RES + DBNAME      
         self.frequency = FrequencyLookup()
+        self.count = 0
         
     def setupDB(self):  
         """Initialize/read database on disk"""
@@ -223,6 +224,7 @@ class DBoMagic:
 #        return readings
     
     def addItemsToDb(self, min, max, exact=False, tag='user'):
+        self.count = 0
         success = False
         
         items = self.frequency.getFrequencyRange(min, max, exact)
@@ -233,6 +235,7 @@ class DBoMagic:
                 Item(item = item, tags = tag, next_quiz = now, leitner_grade = Leitner.grades.None.index, active = True, 
                 current_session = False, been_in_session = 0)
                 
+                self.count = self.count + 1
                 success = True
                 try: 
                     session.commit()

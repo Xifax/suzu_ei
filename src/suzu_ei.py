@@ -125,13 +125,14 @@ if __name__ == '__main__':
     quiz.setWindowIcon(QIcon('../res/icons/suzu.png'))
     
     about = About()
-    #options = OptionsDialog(quiz.srs.db, quiz.options)
+    options = OptionsDialog(quiz.srs.db, quiz.srs.db.frequency, quiz.options)
     #qdict = QuickDictionary(quiz.jmdict, quiz.edict, quiz.kjd, quiz.srs.db, quiz.options)
         
     #updater = BackgroundDownloader(quiz.options.getRepetitionInterval())
     #updater.start()
+    qdict = (); updater = ()
     
-    #quiz.addReferences(about, options, qdict)#, updater)
+    quiz.addReferences(about, options, qdict, updater)
     quiz.initGlobalHotkeys() 
     
     sys.exit(app.exec_())
@@ -142,16 +143,21 @@ if __name__ == '__main__':
 #    results = test.lookupExactWorld('to')
 #    pass
 
+#===============================================================================
 #    from datetime import datetime
-#
+# 
 #    start = datetime.now()
+#    
 #    test = FrequencyLookup()
 #    test.parseXLSXSource()
+#    
 #    print datetime.now() - start
+#===============================================================================
+    
 #    test.loadFrequencyDict()
 #    
 #    start = datetime.now()
 #    print test.getFrequencyRangeLimits()
 #    print datetime.now() - start
-#
-#    print 'ok'
+
+    print 'ok'

@@ -15,7 +15,7 @@ from enum import Enum
 ##########################
 
 # quiz dialog
-D_WIDTH = 560
+D_WIDTH = 660
 D_HEIGHT = 176
 H_INDENT = D_WIDTH + 10 #indent from right
 V_INDENT = D_HEIGHT + 40 #indent from bottom

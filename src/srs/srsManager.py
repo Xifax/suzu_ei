@@ -54,10 +54,12 @@ class srsScheduler:
         result = []
         words = self.currentExample['eng'].split(' ')
         for word in words:
-            if not word.endswith('.'):
-                result.append(word + ' ')
-            else:
-                result.append(word)
+            result.append(word + ' ')
+
+#            if not word.endswith('.'):
+#                result.append(word + ' ')
+#            else:
+#                result.append(word)
         return result
         #return self.currentExample['eng'].split(' ')
     

@@ -94,6 +94,7 @@ from gui.guiMain import Quiz
 from gui.about import About
 from gui.guiOpt import OptionsDialog
 from gui.guiQuick import QuickDictionary
+from utilities.log import log
 #from utilities.utils import BackgroundDownloader
 #from edict.db import redict      # for redict, elusive import
 
@@ -135,7 +136,10 @@ if __name__ == '__main__':
     quiz.addReferences(about, options, qdict, updater)
     quiz.initGlobalHotkeys() 
     
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except Exception, e:
+        log.debug(e)
                     
 #    test = TatoebaLookup()
 #    #test.parseTatoebaExamples()

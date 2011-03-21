@@ -26,11 +26,11 @@ from edict.db import DictionaryLookup
 # external #
 from PySide.QtCore import QTimer,Qt,QRect,QObject,QEvent,QByteArray
 from PySide.QtGui import *
-from cjktools.resources.radkdict import RadkDict
-from pkg_resources import resource_filename
-from cjktools.resources import auto_format
-from cjktools.resources import kanjidic
-from cjktools import scripts
+#from cjktools.resources.radkdict import RadkDict
+#from pkg_resources import resource_filename
+#from cjktools.resources import auto_format
+#from cjktools.resources import kanjidic
+#from cjktools import scripts
 
 ##########################################
 # Event filters/handlers and key hookers #

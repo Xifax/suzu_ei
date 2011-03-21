@@ -570,7 +570,7 @@ class OptionsDialog(QFrame):
             i=0; j=0; max_c = 20#; max_r =50
             for item in studyItems:
                 element = QLabel(item.item)
-                element.setFont(QFont(self.options.getInfoFont(), 20))
+                element.setFont(QFont(self.options.getInfoFont(), 13))
                 
                 #if item.active:  element.setStyleSheet("QLabel { color:" + Leitner.correspondingColor(item.leitner_grade) + "}")
                 #else: element.setStyleSheet("QLabel { color:gray }")
@@ -615,7 +615,7 @@ class OptionsDialog(QFrame):
             self.items.kanjiLarge.setFont(QFont(self.options.getSentenceFont(), 56))
             self.items.words = QLabel(u'')
             self.items.words.setWordWrap(True)
-            self.items.words.setFont(QFont(Fonts.MSMyoutyou, 18))
+            self.items.words.setFont(QFont(Fonts.MSMyoutyou, 14))
             self.items.next = QLabel(u'')
             self.items.leitner = QLabel(u'')
             

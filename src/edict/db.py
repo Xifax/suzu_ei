@@ -22,7 +22,7 @@ from sqlalchemy import asc, and_, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.sqlsoup import SqlSoup
 #from sqlalchemy.orm.exc import NoResultFound
-from jcconv import hira2kata
+#from jcconv import hira2kata
 
 def removeDuplicates(list):
     set = {}
@@ -232,7 +232,7 @@ class DBoMagic:
         now = datetime.now()
         for item in items:
             if session.query(Item).filter_by(item = item).count()  == 0:
-                Item(item = item, tags = tag, next_quiz = now, leitner_grade = Leitner.grades.None.index, active = True, 
+                Item(item = item.lower(), tags = tag, next_quiz = now, leitner_grade = Leitner.grades.None.index, active = True, 
                 current_session = False, been_in_session = 0)
                 
                 self.count = self.count + 1

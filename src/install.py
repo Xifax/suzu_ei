@@ -21,7 +21,7 @@ try:
     from setuptools.command import easy_install
 except ImportError:
     print 'Please, install easy_install!'
-    if input('Download setuptools now? [y/n]') == 'y' or 'Y':
+    if raw_input('Download setuptools now? [y/n]: ') == 'y' or 'Y':
         file = downloadWithProgressbar('http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe')
         subprocess.call('./' + file)
         os.remove('./' + file)
@@ -31,8 +31,7 @@ def install_with_easyinstall(package):
     easy_install.main(["-U", package])
     
 if __name__ == '__main__':
-
-    packages = ['pyside', 'sqlalchemy', 'elixir',' userconfig', 'pymorphy', 'nltk', 'openpyxl']
+    packages = ['pyside', 'sqlalchemy', 'enum', 'elixir',' userconfig', 'pymorphy', 'nltk', 'openpyxl', 'pywin32']
     for package in packages:
         print 'Installing ' + package
         install_with_easyinstall(package)

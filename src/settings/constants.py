@@ -64,11 +64,13 @@ FREQUENCIES_XL = 'SUBTLEX.xlsx'
 FREQUENCIES_TXT = 'SUBTLEX.txt'
 XL_SHEET = 'out1g'
 RESULTING_FREQUENCIES = 'frequencies.pck'
+RESULTING_DICT = 'dict.pck'
 
 ICONS = 'icons/'
 LOGOS = 'logo/'
 TRAY = 'tray/'
 FREQ = 'frequency/'
+DICT = 'sdict/'
 
 ###########################
 ### version information ###

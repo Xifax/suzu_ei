@@ -22,6 +22,7 @@ from gui.guiOpt import OptionsDialog
 from gui.guiQuick import QuickDictionary
 from gui.guiUtil import roundCorners, unfillLayout
 from edict.db import DictionaryLookup
+from edict.edict import EdictParser
 
 # external #
 from PySide.QtCore import QTimer,Qt,QRect,QObject,QEvent,QByteArray
@@ -44,7 +45,7 @@ class Filter(QObject):
             object.setStyleSheet("QLabel { color: rgb(0, 0, 0); }")
             
             object.parent().info.hide()
-            object.parent().allInfo.hide()
+            #object.parent().allInfo.hide()
 
             desktop = QApplication.desktop().screenGeometry()
             object.parent().info.setGeometry(QRect(desktop.width() - H_INDENT - I_WIDTH - I_INDENT, desktop.height() - V_INDENT, I_WIDTH, I_HEIGHT))
@@ -52,27 +53,14 @@ class Filter(QObject):
         if event.type() == QEvent.HoverEnter:
             object.setStyleSheet("QLabel { color: rgb(0, 5, 255); }")
             
-            object.parent().info.item.setText(object.text())
+            object.parent().info.item.setText(object.text().strip())
             
-            reading = object.parent().srs.getWordPronunciationFromExample(object.text())
-            if reading != object.text() :  object.parent().info.reading.setText(reading)
-            else:   object.parent().info.reading.setText(u'')
+            lookup = object.parent().dict.lookupExactWord(object.text().strip())
+            for item in lookup:
+                print item['eng'], item['rus']
             
             #parsing word
-            script = scripts.script_boundaries(object.text())
-            components = []
-
-            for cluster in script:
-                if scripts.script_type(cluster) == scripts.Script.Kanji:
-                    for kanji in cluster:
-                        components = components + list(object.parent().rdk[kanji]) + list('\n')
-                        #kanji_list.append(kanji)
-                
-            #setting radikals
-            if len(components) > 0: components.pop()    #remove last '\n'
-            object.parent().info.components.setText(' '.join(components))
             
-            #looking up translation    #TODO: show translation only when left/right button is pressed (otherwise, show just main translation)
             '''
             try:
                 search = object.parent().edict[object.text()]
@@ -87,124 +75,124 @@ class Filter(QObject):
             #QTimer.singleShot(100, object.parent().info.show)      #for additional smoothness
             object.parent().info.show()
 
-        if event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.MiddleButton:
-                print 'Middle'   #TODO: add distinction between actions     
-            if event.button() == Qt.LeftButton:
-                print 'Left'   #TODO: add distinction between actions
-            if object.parent().info.isVisible() and object.parent().allInfo.isHidden():  
-                object.parent().info.hide()
-                              
-                #object.parent().unfill(object.parent().allInfo.layout)
-                unfillLayout(object.parent().allInfo.layout)
-                object.parent().allInfo.layout.setMargin(1)
-                #object.parent().allInfo.layout.setAlignment(Qt.AlignCenter)
-                
-                kanjiList = []
-                script = scripts.script_boundaries(object.text())
-
-                for cluster in script:
-                    if scripts.script_type(cluster) == scripts.Script.Kanji:
-                        for kanji in cluster:
-                            kanjiList.append(kanji)
-                
-                i=0; j=0;
-                # kanji strokes
-                if len(kanjiList) > 0:
-                    
-                    infile = open('../res/kanji/KANJI-MANIFEST-UNICODE-HEX', 'r')
-                    text = infile.read()
-                    infile.close()
-                    
-                    for kanji in kanjiList:
-                        
-                        if( text.find(kanji.encode('utf-8').encode('hex')) != -1):
-                        
-                            gif = QLabel()
-                            gif.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)        
-                            gif.setAlignment(Qt.AlignCenter) 
-    
-                            movie = QMovie('../res/kanji/' + kanji.encode('utf-8').encode('hex') + '.gif', QByteArray(), self) 
-                            movie.setCacheMode(QMovie.CacheAll) 
-                            movie.setSpeed(150) 
-                            
-                            gif.setMovie(movie)
-                            object.parent().allInfo.layout.addWidget(gif, i, j);   j = j + 1
-                            movie.start()
-                              
-                    i = i + 1
-                
-                # words translation
-                translations = QLabel(u'')
-                translations.setFont(QFont('Calibri', 11))
-                translations.setWordWrap(True)
-                translations.setAlignment(Qt.AlignCenter)
-                try:
-                    #search = object.parent().edict[object.text()]
-                    search = object.parent().edict[object.parent().srs.getWordNonInflectedForm(object.text())]
-
-                    translationText = u''
-                    '''
-                    for sense in search.senses_by_reading():                #TODO: change to show only one sence
-                        variants = search.senses_by_reading()[sense]
-                        variants = filter (lambda e: e != '(P)', variants)
-                        #TODO: add replace for ()
-                        
-                        translationText += '<b>' + sense + '</b>:\t' + ', '.join(variants) + '\n'
-
-                    #NB: crop text to n symbols    
-                    translations.setText(translationText.rstrip('\n'))
-                    '''
-                    
-                    #variants = search.senses_by_reading()[object.parent().srs.getWordPronunciationFromExample(object.text())]#[0]       #NB: add non-inflected form control
-                    variants = search.senses_by_reading()[object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text()))][:3]  #TODO: or add option, specifying, how many variants
-                    variants = filter (lambda e: e != '(P)', variants)                                                                          #should be shown
-                    
-                    translationText += '<b>' + object.parent().srs.getWordPronunciationFromExample(object.text()) + '</b>:\t' + ', '.join(variants)
-                    translations.setText(translationText.rstrip('\n'))
-                    
-                    #print translations.text()
-                except:
-                    #object.parent().jmdict.lookupItemTranslationJoin(object.parent().srs.getWordNonInflectedForm(object.text()))
-                    # at first - search just kana
-                    # then - search word by reading
-                    '''    
-                    search = object.parent().jmdict.lookupItemByReading(object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text())))
-                    if len(search) > 0:
-                        lookup = object.parent().jmdict.lookupItemTranslationJoin(search[0])
-                        if len(lookup) > 5: lookup = lookup[:5]
-                        translations.setText('<b>' + object.parent().srs.getWordPronunciationFromExample(object.text())+ '</b>:\t' + ', '.join(lookup))
-                    '''
-                    ### by reading
-                    search = object.parent().jmdict.lookupTranslationByReadingJoin(object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text())), object.parent().options.getLookupLang())
-                    if len(search) > 0:
-                        if len(search) > 5: search = search[:5]
-                        translations.setText('<b>' + object.parent().srs.getWordPronunciationFromExample(object.text())+ '</b>:\t' + ', '.join(search))
-                    ### by kanji
-                    else:
-                        search = object.parent().jmdict.lookupItemByReading(object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text())))
-                        if len(search) > 0:
-                            lookup = object.parent().jmdict.lookupItemTranslationJoin(search[0], object.parent().options.getLookupLang())
-                            if len(lookup) > 5: lookup = lookup[:5]
-                            translations.setText('<b>' + object.parent().srs.getWordPronunciationFromExample(object.text())+ '</b>:\t' + ', '.join(lookup))
-                    ### nothing found
-                    if len(search) == 0: translations.setText(u'Alas, no translation in edict or jmdict!')
-                
-                if i > 0:
-                    separator = QFrame()
-                    separator.setFrameShape(QFrame.HLine)
-                    separator.setFrameShadow(QFrame.Sunken)
-                    object.parent().allInfo.layout.addWidget(separator, i, 0, 1, j);   i = i + 1
-                
-                object.parent().allInfo.layout.addWidget(translations, i, 0, 1, j)    #NB: rows span should be changed, maybe
-                
-                object.parent().allInfo.update()
-                object.parent().allInfo.show()
-                
-            elif object.parent().allInfo.isVisible():  #object.parent().info.isHidden():
-
-                object.parent().allInfo.hide()   
-                object.parent().info.show()
+#        if event.type() == QEvent.MouseButtonPress:
+#            if event.button() == Qt.MiddleButton:
+#                print 'Middle'   #TODO: add distinction between actions     
+#            if event.button() == Qt.LeftButton:
+#                print 'Left'   #TODO: add distinction between actions
+#            if object.parent().info.isVisible() and object.parent().allInfo.isHidden():  
+#                object.parent().info.hide()
+#                              
+#                #object.parent().unfill(object.parent().allInfo.layout)
+#                unfillLayout(object.parent().allInfo.layout)
+#                object.parent().allInfo.layout.setMargin(1)
+#                #object.parent().allInfo.layout.setAlignment(Qt.AlignCenter)
+#                
+#                kanjiList = []
+#                script = scripts.script_boundaries(object.text())
+#
+#                for cluster in script:
+#                    if scripts.script_type(cluster) == scripts.Script.Kanji:
+#                        for kanji in cluster:
+#                            kanjiList.append(kanji)
+#                
+#                i=0; j=0;
+#                # kanji strokes
+#                if len(kanjiList) > 0:
+#                    
+#                    infile = open('../res/kanji/KANJI-MANIFEST-UNICODE-HEX', 'r')
+#                    text = infile.read()
+#                    infile.close()
+#                    
+#                    for kanji in kanjiList:
+#                        
+#                        if( text.find(kanji.encode('utf-8').encode('hex')) != -1):
+#                        
+#                            gif = QLabel()
+#                            gif.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)        
+#                            gif.setAlignment(Qt.AlignCenter) 
+#    
+#                            movie = QMovie('../res/kanji/' + kanji.encode('utf-8').encode('hex') + '.gif', QByteArray(), self) 
+#                            movie.setCacheMode(QMovie.CacheAll) 
+#                            movie.setSpeed(150) 
+#                            
+#                            gif.setMovie(movie)
+#                            object.parent().allInfo.layout.addWidget(gif, i, j);   j = j + 1
+#                            movie.start()
+#                              
+#                    i = i + 1
+#                
+#                # words translation
+#                translations = QLabel(u'')
+#                translations.setFont(QFont('Calibri', 11))
+#                translations.setWordWrap(True)
+#                translations.setAlignment(Qt.AlignCenter)
+#                try:
+#                    #search = object.parent().edict[object.text()]
+#                    search = object.parent().edict[object.parent().srs.getWordNonInflectedForm(object.text())]
+#
+#                    translationText = u''
+#                    '''
+#                    for sense in search.senses_by_reading():                #TODO: change to show only one sence
+#                        variants = search.senses_by_reading()[sense]
+#                        variants = filter (lambda e: e != '(P)', variants)
+#                        #TODO: add replace for ()
+#                        
+#                        translationText += '<b>' + sense + '</b>:\t' + ', '.join(variants) + '\n'
+#
+#                    #NB: crop text to n symbols    
+#                    translations.setText(translationText.rstrip('\n'))
+#                    '''
+#                    
+#                    #variants = search.senses_by_reading()[object.parent().srs.getWordPronunciationFromExample(object.text())]#[0]       #NB: add non-inflected form control
+#                    variants = search.senses_by_reading()[object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text()))][:3]  #TODO: or add option, specifying, how many variants
+#                    variants = filter (lambda e: e != '(P)', variants)                                                                          #should be shown
+#                    
+#                    translationText += '<b>' + object.parent().srs.getWordPronunciationFromExample(object.text()) + '</b>:\t' + ', '.join(variants)
+#                    translations.setText(translationText.rstrip('\n'))
+#                    
+#                    #print translations.text()
+#                except:
+#                    #object.parent().jmdict.lookupItemTranslationJoin(object.parent().srs.getWordNonInflectedForm(object.text()))
+#                    # at first - search just kana
+#                    # then - search word by reading
+#                    '''    
+#                    search = object.parent().jmdict.lookupItemByReading(object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text())))
+#                    if len(search) > 0:
+#                        lookup = object.parent().jmdict.lookupItemTranslationJoin(search[0])
+#                        if len(lookup) > 5: lookup = lookup[:5]
+#                        translations.setText('<b>' + object.parent().srs.getWordPronunciationFromExample(object.text())+ '</b>:\t' + ', '.join(lookup))
+#                    '''
+#                    ### by reading
+#                    search = object.parent().jmdict.lookupTranslationByReadingJoin(object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text())), object.parent().options.getLookupLang())
+#                    if len(search) > 0:
+#                        if len(search) > 5: search = search[:5]
+#                        translations.setText('<b>' + object.parent().srs.getWordPronunciationFromExample(object.text())+ '</b>:\t' + ', '.join(search))
+#                    ### by kanji
+#                    else:
+#                        search = object.parent().jmdict.lookupItemByReading(object.parent().srs.getWordPronounciation(object.parent().srs.getWordNonInflectedForm(object.text())))
+#                        if len(search) > 0:
+#                            lookup = object.parent().jmdict.lookupItemTranslationJoin(search[0], object.parent().options.getLookupLang())
+#                            if len(lookup) > 5: lookup = lookup[:5]
+#                            translations.setText('<b>' + object.parent().srs.getWordPronunciationFromExample(object.text())+ '</b>:\t' + ', '.join(lookup))
+#                    ### nothing found
+#                    if len(search) == 0: translations.setText(u'Alas, no translation in edict or jmdict!')
+#                
+#                if i > 0:
+#                    separator = QFrame()
+#                    separator.setFrameShape(QFrame.HLine)
+#                    separator.setFrameShadow(QFrame.Sunken)
+#                    object.parent().allInfo.layout.addWidget(separator, i, 0, 1, j);   i = i + 1
+#                
+#                object.parent().allInfo.layout.addWidget(translations, i, 0, 1, j)    #NB: rows span should be changed, maybe
+#                
+#                object.parent().allInfo.update()
+#                object.parent().allInfo.show()
+#                
+#            elif object.parent().allInfo.isVisible():  #object.parent().info.isHidden():
+#
+#                object.parent().allInfo.hide()   
+#                object.parent().info.show()
             
         return False
 
@@ -375,21 +363,16 @@ class Quiz(QFrame):
         
         """"Initialize Dictionaries    (will take a some time!)"""
         time_start = datetime.now()
+        self.dict = EdictParser()
+        self.dict.loadDict()
         
         self.trayIcon.showMessage('Loading...', 'Initializing dictionaries', QSystemTrayIcon.MessageIcon.Information, 20000 )     #TODO: change into loading dialog... or not
-#        self.rdk = RadkDict()
-#        edict_file = resource_filename('cjktools_data', 'dict/je_edict')
-#        self.edict = auto_format.load_dictionary(edict_file)
-#        self.kjd = kanjidic.Kanjidic()
         
         """Initializing srs system"""
         self.trayIcon.showMessage('Loading...', 'Initializing databases', QSystemTrayIcon.MessageIcon.Information, 20000 )
         self.srs = srsScheduler()
         self.srs.initializeAll()
         self.srs.initializeCurrentSession(self.options.getSessionSize())
-        
-        """Jmdict lookup"""
-        #self.jmdict = DictionaryLookup()
         
         """Global hotkeys hook"""
         #TODO: add multiple hotkeys and fix stop()

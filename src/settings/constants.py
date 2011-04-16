@@ -21,7 +21,7 @@ H_INDENT = D_WIDTH + 10 #indent from right
 V_INDENT = D_HEIGHT + 40 #indent from bottom
 
 # info dialog
-I_WIDTH = 220
+I_WIDTH = 420
 I_HEIGHT = D_HEIGHT
 I_INDENT = 2
 
@@ -71,6 +71,7 @@ LOGOS = 'logo/'
 TRAY = 'tray/'
 FREQ = 'frequency/'
 DICT = 'sdict/'
+DICT_EN = 'dicts/en'
 
 ###########################
 ### version information ###
@@ -105,3 +106,12 @@ __application__ = 'suzu_ei'    #輪廻／りんね or 鈴ね
 
 sentences_url = 'http://tatoeba.org/files/downloads/sentences.csv'
 links_url = 'http://tatoeba.org/files/downloads/links.csv'
+
+###########################
+###   sentence limits   ###
+###########################
+
+SENTENCE_MAX = 44
+COLUMNS_MAX = 70
+TRANSLATION_CHARS_LIMIT = 90
+MIN_FONT_SIZE = 14

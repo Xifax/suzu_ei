@@ -27,6 +27,7 @@ from edict.edict import EdictParser
 # external #
 from PySide.QtCore import QTimer,Qt,QRect,QObject,QEvent,QByteArray
 from PySide.QtGui import *
+from pymorphy import get_morph
 #from cjktools.resources.radkdict import RadkDict
 #from pkg_resources import resource_filename
 #from cjktools.resources import auto_format
@@ -51,13 +52,37 @@ class Filter(QObject):
             object.parent().info.setGeometry(QRect(desktop.width() - H_INDENT - I_WIDTH - I_INDENT, desktop.height() - V_INDENT, I_WIDTH, I_HEIGHT))
         
         if event.type() == QEvent.HoverEnter:
+#            object.parent().info.restoreGeometry(object.parent().info.gem)
             object.setStyleSheet("QLabel { color: rgb(0, 5, 255); }")
             
-            object.parent().info.item.setText(object.text().strip())
+            object.parent().info.translation.setText(u'')
             
-            lookup = object.parent().dict.lookupExactWord(object.text().strip())
+            trimmed_word = object.text().strip().lower().replace('?', '').replace('.', '').replace('!', '').replace('...', '').replace(',', '').replace(';', '').replace("'", "").replace('"', '')
+            normalized = object.parent().morphy.normalize(trimmed_word.upper())
+            
+            print trimmed_word
+            
+            lookup = object.parent().dict.lookupExactWord(trimmed_word.lower())
+            if len(lookup) == 0: lookup = object.parent().dict.lookupExactWord(normalized.pop().lower())
+            
+            translation = u''; n = 2; i = 0
+            
             for item in lookup:
-                print item['eng'], item['rus']
+                print item['eng']
+                if trimmed_word == item['eng']:
+                    translation += '<b>' + item['eng'] +'</b>:\t' + item['rus'] + '<br/>'
+#                    if i > n: break
+#                    else: i += 1
+            print translation
+            object.parent().info.translation.setText(translation)
+            
+#===============================================================================
+#            lookup = object.parent().dict.lookupExactWord(object.text().strip())
+#            for item in lookup:
+# #                print object.text().lower().replace('?', '').replace('.', '').replace('!', '').replace('...', '')
+#                if item['eng'] == object.text().strip().lower().replace('?', '').replace('.', '').replace('!', '').replace('...', ''):
+#                    print item['eng'], item['rus']
+#===============================================================================
             
             #parsing word
             
@@ -237,21 +262,26 @@ class Quiz(QFrame):
         self.info.reading = QLabel(u'')
         self.info.item = QLabel(u'')
         self.info.components = QLabel(u'')
-
-        separator_one = QFrame()
-        separator_one.setFrameShape(QFrame.HLine)
-        separator_one.setFrameShadow(QFrame.Sunken)
         
-        separator_two = QFrame()
-        separator_two.setFrameShape(QFrame.HLine)
-        separator_two.setFrameShadow(QFrame.Sunken)
+        self.info.translation = QLabel(u'')
+        self.info.translation.setAlignment(Qt.AlignCenter)
+        self.info.translation.setWordWrap(True)
+
+#        separator_one = QFrame()
+#        separator_one.setFrameShape(QFrame.HLine)
+#        separator_one.setFrameShadow(QFrame.Sunken)
+#        
+#        separator_two = QFrame()
+#        separator_two.setFrameShape(QFrame.HLine)
+#        separator_two.setFrameShadow(QFrame.Sunken)
         
         self.info.layout = QVBoxLayout()
-        self.info.layout.addWidget(self.info.reading)
-        self.info.layout.addWidget(separator_one)
-        self.info.layout.addWidget(self.info.item)
-        self.info.layout.addWidget(separator_two)
-        self.info.layout.addWidget(self.info.components)
+        self.info.layout.addWidget(self.info.translation)
+#        self.info.layout.addWidget(self.info.reading)
+#        self.info.layout.addWidget(separator_one)
+#        self.info.layout.addWidget(self.info.item)
+#        self.info.layout.addWidget(separator_two)
+#        self.info.layout.addWidget(self.info.components)
         self.info.setLayout(self.info.layout)
         
         """Verbose Info"""
@@ -366,6 +396,8 @@ class Quiz(QFrame):
         self.dict = EdictParser()
         self.dict.loadDict()
         
+        self.morphy = get_morph(PATH_TO_RES + DICT_EN)
+        
         self.trayIcon.showMessage('Loading...', 'Initializing dictionaries', QSystemTrayIcon.MessageIcon.Information, 20000 )     #TODO: change into loading dialog... or not
         
         """Initializing srs system"""
@@ -406,6 +438,7 @@ class Quiz(QFrame):
         self.info.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.info.setFrameStyle(QFrame.StyledPanel | QFrame.Raised)
         self.info.setGeometry(QRect(desktop.width() - H_INDENT - I_WIDTH - I_INDENT, desktop.height() - V_INDENT, I_WIDTH, I_HEIGHT))
+        self.info.setFixedSize(I_WIDTH, I_HEIGHT)
         
         self.info.setStyleSheet("QWidget { background-color: rgb(255, 255, 255); }")
         
@@ -465,6 +498,8 @@ class Quiz(QFrame):
         
         self.info.reading.setStyleSheet("QLabel { color: rgb(155, 155, 155); }")
         self.info.components.setStyleSheet("QLabel { color: rgb(100, 100, 100); }")
+        
+        self.info.gem = self.info.saveGeometry()
 
 
 ####################################
@@ -531,11 +566,17 @@ class Quiz(QFrame):
         self.grid_layout.setSpacing(0)
         self.labels = []
         
+        columns_mod = 0
+        
+        if len(self.srs.currentExample['eng']) > SENTENCE_MAX: font =  QFont(self.options.getSentenceFont(), MIN_FONT_SIZE); columns_mod = 6
+        else: font = QFont(self.options.getSentenceFont(), self.options.getSentenceFontSize())
+        
         #row, column, rows span, columns span, max columns
-        i = 0; j = 0; r = 1; c = 1; n = 54  # <- needs tweaking and fixing
+        i = 0; j = 0; r = 1; c = 1; n = COLUMNS_MAX + columns_mod
         for word in self.srs.parseCurrentExample():
             label = QLabel(word)
-            label.setFont(QFont(self.options.getSentenceFont(), self.options.getSentenceFontSize()))
+#            label.setFont(QFont(self.options.getSentenceFont(), self.options.getSentenceFontSize()))
+            label.setFont(font)
             
             label.setAttribute(Qt.WA_Hover, True)
             label.installEventFilter(self.filter)
@@ -669,6 +710,19 @@ class Quiz(QFrame):
         
         self.getReadyPostLayout()
         
+    def checkTranslationSize(self, translation):
+        if len(translation) > TRANSLATION_CHARS_LIMIT:
+            self.answered.setStyleSheet('QPushButton { font-size: 9pt; }')
+            
+            space_indices = [i for i, value in enumerate(translation) if value == ' ']
+            find_nearest_index = lambda value,list : min(list, key = lambda x:abs(x - value))
+            nearest_index = find_nearest_index(TRANSLATION_CHARS_LIMIT, space_indices)
+            translation = translation[:nearest_index] + '\n' + translation[nearest_index + 1:]
+        else:
+            self.answered.setStyleSheet('QPushButton { font-size: 11pt; }')
+        
+        self.answered.setText(translation)
+        
     def correctAnswer(self):
         '''
         self.stats.musingsStopped()
@@ -684,10 +738,12 @@ class Quiz(QFrame):
         self.srs.answeredCorrect()
         self.stats.quizAnsweredCorrect()
         #self.answered.setText(u"<font='Cambria'>" + self.srs.getCurrentSentenceTranslation() + "</font>")
-        self.answered.setText(self.srs.getCurrentSentenceTranslation())
-        print self.srs.getCurrentSentenceTranslation()
+#        self.answered.setText(self.srs.getCurrentSentenceTranslation())
+
+        self.checkTranslationSize(self.srs.getCurrentSentenceTranslation())
+
         #self.answered.setFont(QFont('Calibri', 11))
-        self.showSessionMessage(u'<font color=green>Correct: ' + self.srs.getCorrectAnswer() + '</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime() 
+        self.showSessionMessage(u'<font color=green>Correct: OK</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime() 
                                 + '\t|\t<font color=' + self.srs.getLeitnerGradeAndColor()['color'] +  '>Grade: ' + self.srs.getLeitnerGradeAndColor()['grade'] 
                                 + ' (' + self.srs.getLeitnerGradeAndColor()['name'] + ')<font>')
         
@@ -709,11 +765,14 @@ class Quiz(QFrame):
         self.srs.answeredWrong()
         self.stats.quizAnsweredWrong()
         
-        self.answered.setText(self.srs.getCurrentSentenceTranslation())
+#        self.answered.setText(self.srs.getCurrentSentenceTranslation())
+
+        self.checkTranslationSize(self.srs.getCurrentSentenceTranslation())
+
         #self.answered.setFont(QFont('Calibri', 11))
         #self.showSessionMessage(u"Wrong! Should be: <font style='font-family:" + Fonts.MSMyoutyou + "'>" 
                                 #+ self.srs.getCorrectAnswer() + "</font> - Next quiz: " + self.srs.getNextQuizTime())
-        self.showSessionMessage(u'<font color=tomato>Wrong! Should be: '+ self.srs.getCorrectAnswer() + '</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime()
+        self.showSessionMessage(u'<font color=tomato>Bad</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime()
                                 + '\t|\t<font color=' + self.srs.getLeitnerGradeAndColor()['color'] +  '>Grade: ' + self.srs.getLeitnerGradeAndColor()['grade'] 
                                 + ' (' + self.srs.getLeitnerGradeAndColor()['name'] + ')<font>')
             
@@ -728,9 +787,12 @@ class Quiz(QFrame):
         self.stats.quizAnsweredWrong()
 
         #self.showSessionMessage(u'Time is out! Correct answer is:' + self.srs.getCorrectAnswer())
-        self.answered.setFont(QFont('Calibri', 11))
-        self.answered.setText(self.srs.getCurrentSentenceTranslation())
-        self.showSessionMessage(u'<font color=tomato>Timeout! Should be: ' + self.srs.getCorrectAnswer() + '</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime()
+#        self.answered.setFont(QFont('Calibri', 11))
+#        self.answered.setText(self.srs.getCurrentSentenceTranslation())
+
+        self.checkTranslationSize(self.srs.getCurrentSentenceTranslation())
+
+        self.showSessionMessage(u'<font color=tomato>Timeout!</font>\t|\tNext quiz: ' + self.srs.getNextQuizTime()
                                 + '\t|\t<font color=' + self.srs.getLeitnerGradeAndColor()['color'] +  '>Grade: ' + self.srs.getLeitnerGradeAndColor()['grade'] 
                                 + ' (' + self.srs.getLeitnerGradeAndColor()['name'] + ')<font>')        
     
@@ -846,7 +908,7 @@ class Quiz(QFrame):
         self.srs.endCurrentSession()
         self.trayIcon.hide()
 
-        self.hooker.stop()
+#        self.hooker.stop()
 
         #self.updater.stop()
         self.optionsDialog.close()

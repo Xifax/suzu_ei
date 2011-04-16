@@ -41,14 +41,14 @@ Created on Mar 19, 2011
 # Elixir
 # UserConfig
 # nltk
-# pymorphy
+# pymorphy                            http://goo.gl/ZCCoa
 # openpyxl                            http://goo.gl/NvAD7
 
 ####################################
 #            Resources             #
 ####################################
 
-# NLTK
+# NLTK                                http://goo.gl/u4yYk
 # Tatoeba examples                    http://goo.gl/QFEe2
 # Muller dictionary
 # SUBTLEXus                           http://goo.gl/5WiTP
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     qdict = (); updater = ()
     
     quiz.addReferences(about, options, qdict, updater)
-    quiz.initGlobalHotkeys() 
+#    quiz.initGlobalHotkeys() 
     
     try:
         sys.exit(app.exec_())
